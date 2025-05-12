@@ -43,7 +43,8 @@ struct serverDetails{
     bool preferred = false;                
     bool https_functional = false;         
     std::string host = "";                 
-    bool force_ping_select = false;        
+    bool force_ping_select = false;  
+    int port;    
 
 };
 
