@@ -1,0 +1,34 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug (GDB)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/speedtester",  // Ο εκτελέσιμος σου
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,  // Αν θες εξωτερικό παράθυρο για κονσόλα βάλτο true
+            "MIMode": "gdb",  // Χρησιμοποιούμε GDB
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb",  // Ανάλογα με το που είναι εγκατεστημένο το gdb στον υπολογιστή σου
+            "logging": {
+                "moduleLoad": false,
+                "programOutput": true,
+                "trace": true
+            },
+            "preLaunchTask": "build",  // Θα εκτελεί το build πριν ξεκινήσει το debugging
+            "serverLaunchTimeout": 10000,
+            "filterStdout": true,
+            "filterStderr": true
+        }
+    ]
+}
