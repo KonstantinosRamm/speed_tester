@@ -1,0 +1,1 @@
+/usr/bin/g++ -g CMakeFiles/speedtester.dir/src/curlfunctions.cpp.o CMakeFiles/speedtester.dir/src/main.cpp.o CMakeFiles/speedtester.dir/src/sockets.cpp.o -o speedtester  -lcurl 

@@ -1,0 +1,20 @@
+[
+{
+  "directory": "/home/konstantinosrammos/Documents/speed_tester/build",
+  "command": "/usr/bin/g++  -I/home/konstantinosrammos/Documents/speed_tester/include -g -o CMakeFiles/speedtester.dir/src/curlfunctions.cpp.o -c /home/konstantinosrammos/Documents/speed_tester/src/curlfunctions.cpp",
+  "file": "/home/konstantinosrammos/Documents/speed_tester/src/curlfunctions.cpp",
+  "output": "CMakeFiles/speedtester.dir/src/curlfunctions.cpp.o"
+},
+{
+  "directory": "/home/konstantinosrammos/Documents/speed_tester/build",
+  "command": "/usr/bin/g++  -I/home/konstantinosrammos/Documents/speed_tester/include -g -o CMakeFiles/speedtester.dir/src/main.cpp.o -c /home/konstantinosrammos/Documents/speed_tester/src/main.cpp",
+  "file": "/home/konstantinosrammos/Documents/speed_tester/src/main.cpp",
+  "output": "CMakeFiles/speedtester.dir/src/main.cpp.o"
+},
+{
+  "directory": "/home/konstantinosrammos/Documents/speed_tester/build",
+  "command": "/usr/bin/g++  -I/home/konstantinosrammos/Documents/speed_tester/include -g -o CMakeFiles/speedtester.dir/src/sockets.cpp.o -c /home/konstantinosrammos/Documents/speed_tester/src/sockets.cpp",
+  "file": "/home/konstantinosrammos/Documents/speed_tester/src/sockets.cpp",
+  "output": "CMakeFiles/speedtester.dir/src/sockets.cpp.o"
+}
+]
