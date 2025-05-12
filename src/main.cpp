@@ -43,19 +43,33 @@ int main(){
 
 
 
+    
+
     //find and available server
     for(const auto & server: servers){
         //implement  the socket for IPv4
-        int sockfd = SOCKET_ERROR;
+        int sockfd4 = SOCKET_ERROR;
+
         int sockfd6 = SOCKET_ERROR;
 
 
 
-        if(sockfd != SOCKET_ERROR){
-            close(sockfd);
+        //create socket and connect to server On IPv4 and IPv6
+
+        sockfd4 = socketv4(server);
+        sockfd6 = socketv6(server);
+
+        //implement speed testing for IPv4 socket
+        if(sockfd4 != SOCKET_ERROR){
+            std::cout << "connected to : " << server.formatted_url << "IPv4" << std::endl;
+            close(sockfd4);
+            return 0;
         }
+        //implement speed testing for IPv6 socket
         if(sockfd6 != SOCKET_ERROR){
+            std::cout << "connected to : " << server.formatted_url << "IPv6" << std::endl;
             close(sockfd6);
+            return 0;
         }
     }   
 
@@ -63,7 +77,7 @@ int main(){
 
 
 
-    //now implement the socket connection and speed testing based on ipv4 or ipv6
+    //implement the speed test now ping-download-upload
 
     return 0;
 }
