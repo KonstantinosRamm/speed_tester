@@ -59,6 +59,9 @@
         "valarray": "cpp",
         "variant": "cpp",
         "fstream": "cpp",
-        "cerrno": "cpp"
+        "cerrno": "cpp",
+        "chrono": "cpp",
+        "charconv": "cpp",
+        "format": "cpp"
     }
 }

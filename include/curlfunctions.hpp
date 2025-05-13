@@ -28,24 +28,19 @@ struct PersonalInfo {
  * @brief struct used to store server details that retrieved from the speed testing api
  */
 struct serverDetails{
-    std::string ipv4 = "";
-    std::string ipv6 = "";
-    std::string url = "";     
-    std::string formatted_url = "";           
-    double lat = 0.0;                      
-    double lon = 0.0;                      
-    int distance = 0;                      
-    std::string name = "";                 
-    std::string country = "";              
-    std::string cc = "";                   
-    std::string sponsor = "";             
-    int id = 0;                            
-    bool preferred = false;                
+    std::string url = "";               //full url of the server    
+    double lat = 0.0;                   //latitude               
+    double lon = 0.0;                   //longtitude             
+    int distance = 0;                   //distance from client       
+    std::string name = "";              //servers name
+    std::string country = "";           //country
+    std::string cc = "";                //iso country code 
+    std::string sponsor = "";           //sponsor of the server           
+    int id = 0;                         //servers id           
+    bool preferred = false;                    
     bool https_functional = false;         
-    std::string host = "";                 
+    std::string host = "";             //host computer    
     bool force_ping_select = false;  
-    int port;    
-
 };
 
 /**
@@ -79,21 +74,8 @@ size_t writedata(void *ptr, size_t size, size_t nmemb, void *data);
  * 
  * @return `true` if the request was successful and the data was parsed and stored correctly in the `personal_info` struct, 
  *         `false` if there was an error.
- * 
- * @example
- * PersonalInfo info;
- * bool success = request("https://ipinfo.io/json", info);
- * if (success) {
- *     std::cout << "IP: " << info.ip << std::endl;
- *     std::cout << "City: " << info.city << std::endl;
- *     std::cout << "Country: " << info.country << std::endl;
- *     std::cout << "Location: " << info.loc << std::endl;
- * }
- * 
- * @see curl_easy_init(), curl_easy_setopt(), curl_easy_perform(), curl_easy_cleanup(), nlohmann::json::parse()
  */
 bool requestPersonalInfo(const std::string& url, PersonalInfo& personal_info);
-
 
 /**
  * @brief print users personal info (ip,country,location,city)
@@ -102,27 +84,50 @@ bool requestPersonalInfo(const std::string& url, PersonalInfo& personal_info);
 void printPersonalData(const PersonalInfo &personal_info);
 
 
-/**temporary to request available servers based on geolocation */
+/**
+ * @brief function to request all available servers based on geolocation
+ * @brief the API from which to request the geolocation data
+ * @returns true if operation succeeded else false
+ * 
+ */
 bool requestAvailableServers(const std::string& url, std::vector<serverDetails>& servers_vector);
 
 
 /**
- * sort servers_vector based on distance
+ *@brief function to sort the servers vector based on distance
  */
 
 void sortServers(std::vector<serverDetails>& servers);
 
 
 /**
- * typecast each field from json to the appropriate format
+ * @brief typecast each field from json to the appropriate format
+ * @param s the current servers fields to be processed
+ * @param server json file reference to parse data from
  */
 void typeCastJson(serverDetails& s,const nlohmann::json& server);
 
 
-// Helper function to safely get a value from the JSON and convert it
-//template<typename T>
-//T safe_get(const nlohmann::json& j, const std::string& key, const T& default_value = T());
-// Declare the generic version first
+/**
+ * @brief takes as argument the vector with all available servers and finds the first available server by performing an http request through libcurl 
+ * if it succeeds then this server is selected and returns true
+ * @param servers the vector of available servers
+ * @param curl the curl handle to be used for the http request 
+ * @returns true if found a server else false
+ */
+bool prepareSpeedtestCurl(const std::vector<serverDetails>& servers,CURL* curl);
+
+
+/**
+ * @brief function used to calculate ping (RTT)
+ * @param url the url of the server of the server to enstablish the connection
+ */
+int findPing(const std::string &url);
+
+
+
+
+
 
 
 
