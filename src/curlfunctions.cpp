@@ -23,7 +23,6 @@ bool requestPersonalInfo(const std::string& url, PersonalInfo& personal_info){
     // Initialize the curl handle
     CURL *handle = curl_easy_init();
     if (!handle) {
-        std::cerr << "Failed to initialize CURL handle" << std::endl;
         return false;
     }
 
@@ -187,6 +186,26 @@ bool requestAvailableServers(const std::string& url,std::vector<serverDetails>& 
     // Return true indicating success
     return true;
 }
+
+
+
+bool prepareSpeedtestCurl(const std::vector<serverDetails>& servers,CURL* curl){
+    //iterate and find the first available url 
+    for(const auto &server : servers){
+        //reset between each iteration
+        curl_easy_reset(curl);
+        curl_easy_setopt(curl,CURLOPT_URL,server.url.c_str());
+        CURLcode res = curl_easy_perform(curl);
+        //return true if a ping succeed
+        if (res == CURLE_OK){
+            return true;
+        }
+    }
+    //return false if ping failed
+    return false;
+}
+
+
 
 
 

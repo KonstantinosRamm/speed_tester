@@ -10,7 +10,6 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/konstantinosrammos/Documents/speed_tester/src/curlfunctions.cpp" "CMakeFiles/speedtester.dir/src/curlfunctions.cpp.o" "gcc" "CMakeFiles/speedtester.dir/src/curlfunctions.cpp.o.d"
   "/home/konstantinosrammos/Documents/speed_tester/src/main.cpp" "CMakeFiles/speedtester.dir/src/main.cpp.o" "gcc" "CMakeFiles/speedtester.dir/src/main.cpp.o.d"
-  "/home/konstantinosrammos/Documents/speed_tester/src/sockets.cpp" "CMakeFiles/speedtester.dir/src/sockets.cpp.o" "gcc" "CMakeFiles/speedtester.dir/src/sockets.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

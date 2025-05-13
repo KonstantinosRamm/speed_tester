@@ -3,8 +3,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/speedtester.dir/src/curlfunctions.cpp.o.d"
   "CMakeFiles/speedtester.dir/src/main.cpp.o"
   "CMakeFiles/speedtester.dir/src/main.cpp.o.d"
-  "CMakeFiles/speedtester.dir/src/sockets.cpp.o"
-  "CMakeFiles/speedtester.dir/src/sockets.cpp.o.d"
   "speedtester"
   "speedtester.pdb"
 )

@@ -177,30 +177,6 @@ src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/speedtester.dir/build.make CMakeFiles/speedtester.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
-src/sockets.o: src/sockets.cpp.o
-.PHONY : src/sockets.o
-
-# target to build an object file
-src/sockets.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/speedtester.dir/build.make CMakeFiles/speedtester.dir/src/sockets.cpp.o
-.PHONY : src/sockets.cpp.o
-
-src/sockets.i: src/sockets.cpp.i
-.PHONY : src/sockets.i
-
-# target to preprocess a source file
-src/sockets.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/speedtester.dir/build.make CMakeFiles/speedtester.dir/src/sockets.cpp.i
-.PHONY : src/sockets.cpp.i
-
-src/sockets.s: src/sockets.cpp.s
-.PHONY : src/sockets.s
-
-# target to generate assembly for a file
-src/sockets.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/speedtester.dir/build.make CMakeFiles/speedtester.dir/src/sockets.cpp.s
-.PHONY : src/sockets.cpp.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -216,9 +192,6 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
-	@echo "... src/sockets.o"
-	@echo "... src/sockets.i"
-	@echo "... src/sockets.s"
 .PHONY : help
 
 
