@@ -6,10 +6,13 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <chrono>
+#include <limits>
 
 #define IP_INFO_URL "https://ipinfo.io/json"  // URL used to extract public IP, geolocation, city to determine the server to connect to.
 #define SERVER_FILE "server_data.json"        // The path to the JSON file where data would be saved (currently unused).
 #define SERVERS_URL "https://www.speedtest.net/api/js/servers" // URL used to retrieve the available speed testing servers based on ip geolocation
+#define INFINITE_PING std::numeric_limits<int>::max();//in case of any error or bad connection the ping will be infinite indicating error
 
 
 
@@ -40,7 +43,8 @@ struct serverDetails{
     bool preferred = false;                    
     bool https_functional = false;         
     std::string host = "";             //host computer    
-    bool force_ping_select = false;  
+    bool force_ping_select = false; 
+    int ping = INFINITE_PING;   //servers ping
 };
 
 /**
@@ -110,19 +114,31 @@ void typeCastJson(serverDetails& s,const nlohmann::json& server);
 
 /**
  * @brief takes as argument the vector with all available servers and finds the first available server by performing an http request through libcurl 
- * if it succeeds then this server is selected and returns true
+ * if it succeeds then it returns the selected server
  * @param servers the vector of available servers
  * @param curl the curl handle to be used for the http request 
  * @returns true if found a server else false
  */
-bool prepareSpeedtestCurl(const std::vector<serverDetails>& servers,CURL* curl);
+serverDetails prepareSpeedtestCurl(const std::vector<serverDetails>& servers,CURL* curl);
 
 
 /**
- * @brief function used to calculate ping (RTT)
- * @param url the url of the server of the server to enstablish the connection
+ * @brief function used to calculate ping (RTT) the function already expects an initialized curl object and already setup
+ * @param curl the curl handle to make the ping operation
+ * @param url the url of the selected server to be used
+ * @returns the ping calculated or int_max in case of error
  */
-int findPing(const std::string &url);
+
+
+void findPing(CURL* curl,std::vector<serverDetails>& servers);
+
+/**
+ * @brief function used to format the selected url for more beautiful format
+ * @param url a string that contains the url to be formatted
+ * @returns the formatted url
+ */
+std::string formatServersURL(const std::string& url);
+
 
 
 
