@@ -1,3 +1,0 @@
-/home/konstantinosrammos/Documents/speed_tester/build/CMakeFiles/speedtester.dir
-/home/konstantinosrammos/Documents/speed_tester/build/CMakeFiles/edit_cache.dir
-/home/konstantinosrammos/Documents/speed_tester/build/CMakeFiles/rebuild_cache.dir

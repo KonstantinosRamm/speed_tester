@@ -42,7 +42,7 @@ int main(){
 
 
     //apply curl request to retrieve available servers for speedtesting
-    res = requestAvailableServers(SERVERS_URL,servers);
+    res = requestAvailableServers(MLAB_URL,servers);
     if(!res){
         std::cout << "error retrieving available servers" << std::endl;
         return 1;
@@ -70,6 +70,8 @@ int main(){
     //print ping
     std::string formated_url = formatServersURL(selected_server.url);
     std::cout << "connected to server : " << formated_url << " | ping: " << selected_server.ping << std::endl;
+
+
 
     //apply download 
     //apply upload

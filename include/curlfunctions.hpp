@@ -12,6 +12,7 @@
 #define IP_INFO_URL "https://ipinfo.io/json"  // URL used to extract public IP, geolocation, city to determine the server to connect to.
 #define SERVER_FILE "server_data.json"        // The path to the JSON file where data would be saved (currently unused).
 #define SERVERS_URL "https://www.speedtest.net/api/js/servers" // URL used to retrieve the available speed testing servers based on ip geolocation
+#define MLAB_URL "https://locate.measurementlab.net/v2/nearest/ndt/ndt7" // officual url for both download and upload speed
 #define INFINITE_PING std::numeric_limits<int>::max();//in case of any error or bad connection the ping will be infinite indicating error
 
 
@@ -58,7 +59,7 @@ struct serverDetails{
  * @param nmemb The number of data elements received (e.g., number of bytes in the response).
  * @param data A pointer to the destination location (typically a `std::string`) where the data will be written.
  * 
- * @return The total number of bytes written. If an error occurs, a non-zero value should be returned.
+ * @return The total number of bytes written. If anSERVERS_UR error occurs, a non-zero value should be returned.
  * 
  * This function is used by libcurl during HTTP requests to store or process the server's response.
  */
