@@ -28,6 +28,7 @@ bool requestPersonalInfo(const std::string& url, PersonalInfo& personal_info){
 
     // Setup CURL flags
     curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(handle,CURLOPT_TIMEOUT,5L); // Timeout after 5 seconds
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, writedata);
 
     // Variable to store the response data
@@ -79,7 +80,7 @@ void printPersonalData(const PersonalInfo &personal_info){
 void sortServers(std::vector<serverDetails>& servers){
     // Use std::sort with a custom comparator to sort based on distance
     std::sort(servers.begin(),servers.end(),[](const serverDetails&  a,const serverDetails& b){
-        return a.distance < b.distance;
+        return a.ping < b.ping;
     });
 }
 
@@ -144,7 +145,9 @@ bool requestAvailableServers(const std::string& url,std::vector<serverDetails>& 
 
     // Setup CURL flags
     curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(handle, CURLOPT_TIMEOUT, 5L); // Timeout after 5 seconds
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, writedata);
+    
 
     // Variable to store the response data
     std::string response_data;
@@ -175,11 +178,6 @@ bool requestAvailableServers(const std::string& url,std::vector<serverDetails>& 
         servers_vector.push_back(s);
         
     }
-
-    //sort servers based on distance 
-    sortServers(servers_vector);
-
-
     // Cleanup the CURL object
     curl_easy_cleanup(handle);
 
@@ -189,21 +187,74 @@ bool requestAvailableServers(const std::string& url,std::vector<serverDetails>& 
 
 
 
-bool prepareSpeedtestCurl(const std::vector<serverDetails>& servers,CURL* curl){
-    //iterate and find the first available url 
+serverDetails prepareSpeedtestCurl(const std::vector<serverDetails>& servers,CURL* curl){
+    //iterate and find the first available server
     for(const auto &server : servers){
         //reset between each iteration
         curl_easy_reset(curl);
         curl_easy_setopt(curl,CURLOPT_URL,server.url.c_str());
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5L); // Timeout after 5 seconds
         CURLcode res = curl_easy_perform(curl);
         //return true if a ping succeed
         if (res == CURLE_OK){
-            return true;
+            return server;
         }
     }
-    //return false if ping failed
-    return false;
+    //return the default server constructor instead 
+    return serverDetails();
 }
+
+
+std::string formatServersURL(const std::string& url){
+    //extract the part of the url between the :// and :
+    
+    size_t pos = url.find("://");
+    if(pos != std::string::npos){
+        pos += 3;// skip ://
+    }
+
+    size_t endPos = url.find(":",pos);
+    if(endPos == std::string::npos){
+        endPos = url.length(); // no path so take everything after ://
+    }
+    //store the formatted url inside the servers details 
+    std::string formatted_url = url.substr(pos,endPos - pos);
+    //return the formatted url 
+    return formatted_url;
+    
+    
+}
+
+
+void findPing(CURL* curl,std::vector<serverDetails>& servers){
+    for(auto &server : servers){
+        //reset curl before the ping(RTT) operation and set curl url to the current server url
+        curl_easy_reset(curl);
+        curl_easy_setopt(curl,CURLOPT_URL,server.url.c_str());
+        curl_easy_setopt(curl, CURLOPT_NOBODY, 1L); // don't download body
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5L); // Timeout after 5 seconds
+        int ping = INFINITE_PING;
+        //check for sure that the curl handle is initialized
+        if(curl){
+            auto start_time = std::chrono::system_clock::now();
+            //check if ping operation succeeded
+            CURLcode res = curl_easy_perform(curl);
+            if(res == CURLE_OK){
+                auto end_time = std::chrono::system_clock::now();
+
+                //calculate duration in ms 
+                auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time-start_time).count();
+                ping = static_cast<int>(duration);
+            }else{
+                std::cerr << "CURL error on ping operation: " << curl_easy_strerror(res) << "\n";
+                
+            }
+        }
+        server.ping = ping;
+    }
+}
+
+
 
 
 
