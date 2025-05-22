@@ -5,30 +5,36 @@
             "name": "Debug (GDB)",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/speedtester",  // Ο εκτελέσιμος σου
+            "program": "${workspaceFolder}/build/speedtester",
             "args": [],
-            "stopAtEntry": true,
+            "stopAtEntry": false,                
             "cwd": "${workspaceFolder}",
             "environment": [],
-            "externalConsole": false,  // Αν θες εξωτερικό παράθυρο για κονσόλα βάλτο true
-            "MIMode": "gdb",  // Χρησιμοποιούμε GDB
+            "externalConsole": false,             
+            "MIMode": "gdb",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
+                },
+                {
+                    "description": "Set disassembly flavor to Intel",
+                    "text": "set disassembly-flavor intel",
+                    "ignoreFailures": true
                 }
             ],
-            "miDebuggerPath": "/usr/bin/gdb",  // Ανάλογα με το που είναι εγκατεστημένο το gdb στον υπολογιστή σου
+            "miDebuggerPath": "/usr/bin/gdb",
             "logging": {
                 "moduleLoad": false,
                 "programOutput": true,
-                "trace": true
+                "trace": false                  // Το trace είναι πιο hardcore, άσε το false για αρχή
             },
-            "preLaunchTask": "build",  // Θα εκτελεί το build πριν ξεκινήσει το debugging
+            "preLaunchTask": "build",
             "serverLaunchTimeout": 10000,
-            "filterStdout": true,
-            "filterStderr": true
+            "filterStdout": false,               // Θες να βλέπεις όλα τα stdout και stderr καθαρά
+            "filterStderr": false
         }
     ]
 }
+

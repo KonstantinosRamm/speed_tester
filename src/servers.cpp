@@ -9,10 +9,8 @@ static size_t writeServers(void* contents, size_t size, size_t nmemb, void* user
 }
 
 
-
-
 //find all available servers and store them in the servers argument
-bool findAvailableServers(std::vector<ServerInfo> & servers){
+bool FindAvailableServers(std::vector<ServerInfo> & servers){
     //CURL handle to perform the http request
     CURL* handle = curl_easy_init();
     //check if curl handle initialized properly
@@ -81,4 +79,63 @@ bool findAvailableServers(std::vector<ServerInfo> & servers){
 
     }
     return true;
+}
+
+
+std::string RetrieveBaseUrl(const std::string& url){
+    //wws://baseUrl?token
+    //extract the base url
+    return url.substr(0,url.find("?"));
+}
+
+std::string RetrieveAccessToken(const std::string& url){
+    std::string token_key = "access_token=";
+    size_t start = url.find(token_key);
+    //return empty string if npos reached
+    if(start == std::string::npos){
+        return "";
+    }
+    //add an offset to the position of the string
+    start += token_key.length();
+
+
+    //find & which indicates the end of token key starting from offset at start index
+    size_t end = url.find('&', start);
+
+    if(end == std::string::npos){
+        return url.substr(start);
+    }
+
+
+    //return the access token
+    return url.substr(start,end - start);
+
+    
+}
+
+
+void FindPing(std::vector<ServerInfo>& servers){
+    std::promise<void> promise;
+    std::future<void> future = promise.get_future();
+
+    ix::WebSocket ws;
+    ws.setUrl(RetrieveBaseUrl("wss://ndt-mlab3-ath03.mlab-oti.measurement-lab.org/ndt/v7/download?access_token=eyJhbGciOiJFZERTQSIsImtpZCI6ImxvY2F0ZV8yMDIwMDQwOSJ9.eyJhdWQiOlsibWxhYjMtYXRoMDMubWxhYi1vdGkubWVhc3VyZW1lbnQtbGFiLm9yZyJdLCJleHAiOjE3NDc4NDgyNjksImlzcyI6ImxvY2F0ZSIsImp0aSI6ImYyZjJjZDk2LTIwMjEtNGE2OC05ZTk1LThiNzkyOTJmMTAwNSIsInN1YiI6Im5kdCJ9.7uhO0sjxf2KpzHZW2HYx1-C54ggLm7HEulplD2Nmpc8r0-orebQcTnpqx_9KGB97iPfSbNpasfbne0JY0SuEDg&index=0&locate_version=v2&metro_rank=0")); // safe public echo server
+
+    ws.setOnMessageCallback([&](const ix::WebSocketMessagePtr& msg) {
+        if (msg->type == ix::WebSocketMessageType::Open) {
+            std::cout << "Connected successfully.\n";
+            ws.close();
+        }
+        else if (msg->type == ix::WebSocketMessageType::Close) {
+            std::cout << "Connection closed.\n";
+            promise.set_value();
+        }
+        else if (msg->type == ix::WebSocketMessageType::Error) {
+            std::cerr << "Error: " << msg->errorInfo.reason << "\n";
+            promise.set_value();
+        }
+    });
+
+    ws.start();
+    future.get();
 }

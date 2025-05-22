@@ -62,6 +62,15 @@
         "cerrno": "cpp",
         "chrono": "cpp",
         "charconv": "cpp",
-        "format": "cpp"
+        "format": "cpp",
+        "condition_variable": "cpp",
+        "source_location": "cpp",
+        "mutex": "cpp",
+        "semaphore": "cpp",
+        "shared_mutex": "cpp",
+        "stop_token": "cpp",
+        "thread": "cpp",
+        "list": "cpp",
+        "future": "cpp"
     }
 }

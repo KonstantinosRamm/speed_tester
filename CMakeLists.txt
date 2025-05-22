@@ -1,18 +1,14 @@
-cmake_minimum_required(VERSION 3.28.3)
-
+cmake_minimum_required(VERSION 3.10)
 project(speedtester)
 
-file(GLOB_RECURSE SOURCES src/*.cpp)
+set(CMAKE_CXX_STANDARD 17)
 
-include_directories(include)
-
-# Find and link the CURL library
-find_package(CURL REQUIRED)
+# Βρες όλα τα cpp αρχεία μέσα στο src
+file(GLOB SOURCES "src/*.cpp")
 
 add_executable(speedtester ${SOURCES})
 
-# Link the CURL library
-target_link_libraries(speedtester curl)
+target_include_directories(speedtester PRIVATE include)
 
-# Alternatively, if find_package doesn't work, you can explicitly specify the library path
-# target_link_libraries(speedtester ${CURL_LIBRARIES})
+target_link_libraries(speedtester ixwebsocket curl ssl crypto z pthread)
+
