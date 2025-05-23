@@ -84,8 +84,9 @@ bool FindAvailableServers(std::vector<ServerInfo> & servers){
 
 std::string RetrieveBaseUrl(const std::string& url){
     //wws://baseUrl?token
-    //extract the base url
-    return url.substr(0,url.find("?"));
+    //extract the base url with the access token 
+    //in m-lab the ? is replaced with \u0026 to avoid encoding issues
+    return url.substr(0,url.find("\u0026"));
 }
 
 std::string RetrieveAccessToken(const std::string& url){
@@ -119,7 +120,15 @@ void FindPing(std::vector<ServerInfo>& servers){
     std::future<void> future = promise.get_future();
 
     ix::WebSocket ws;
-    ws.setUrl(RetrieveBaseUrl("wss://ndt-mlab3-ath03.mlab-oti.measurement-lab.org/ndt/v7/download?access_token=eyJhbGciOiJFZERTQSIsImtpZCI6ImxvY2F0ZV8yMDIwMDQwOSJ9.eyJhdWQiOlsibWxhYjMtYXRoMDMubWxhYi1vdGkubWVhc3VyZW1lbnQtbGFiLm9yZyJdLCJleHAiOjE3NDc4NDgyNjksImlzcyI6ImxvY2F0ZSIsImp0aSI6ImYyZjJjZDk2LTIwMjEtNGE2OC05ZTk1LThiNzkyOTJmMTAwNSIsInN1YiI6Im5kdCJ9.7uhO0sjxf2KpzHZW2HYx1-C54ggLm7HEulplD2Nmpc8r0-orebQcTnpqx_9KGB97iPfSbNpasfbne0JY0SuEDg&index=0&locate_version=v2&metro_rank=0")); // safe public echo server
+    //required headers from server to not get error 400
+    //
+    ws.setExtraHeaders({
+        {"Sec-WebSocket-Protocol", "net.measurementlab.ndt.v7"},
+        {"User-Agent", "ndt7-cpp-client"}
+    });
+    
+    //retrieve the proper path .Required path ---> scheme/domain/access_token
+    ws.setUrl(RetrieveBaseUrl(servers.at(0).download_wss)); //retrieve the proper format of the connection url
 
     ws.setOnMessageCallback([&](const ix::WebSocketMessagePtr& msg) {
         if (msg->type == ix::WebSocketMessageType::Open) {
