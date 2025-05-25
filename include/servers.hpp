@@ -87,9 +87,8 @@ std::string RetrieveBaseUrl(const std::string& url);
 
 
 /**
- * @brief takes the url of the server and extracts the access token
- * @param string that contains the whole url of the server
- * @return the access token
+ * @brief sorts the servers based on calculated ping
+ * @param servers the vector of servers to be sorted 
  */
 
- std::string RetrieveAccessToken(const std::string& url);
+void sortServers(std::vector<ServerInfo>& servers);

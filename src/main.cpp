@@ -15,7 +15,15 @@ int main(void){
       std::cerr << "could not complete operation : findAvailableServers" << std::endl;
       return 1;
    }
-   FindPing(servers);
+
+   std::cout << "____________________PING____________________" << std::endl;
+   FindPing(servers);//ping servers to find the best one 
+   sortServers(servers);//sort servers based on ping
+
+
+   for (auto& server : servers){
+      std::cout << server.machine << " ping : " << server.ping << std::endl;
+   }
 
    return 0;
 }

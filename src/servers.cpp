@@ -116,35 +116,63 @@ std::string RetrieveAccessToken(const std::string& url){
 
 
 void FindPing(std::vector<ServerInfo>& servers){
-    std::promise<void> promise;
-    std::future<void> future = promise.get_future();
+    for (auto& server : servers)
+    {
+        std::promise<void> promise;
+        std::future<void> future = promise.get_future();
 
-    ix::WebSocket ws;
-    //required headers from server to not get error 400
-    //
-    ws.setExtraHeaders({
-        {"Sec-WebSocket-Protocol", "net.measurementlab.ndt.v7"},
-        {"User-Agent", "ndt7-cpp-client"}
-    });
+        std::chrono::steady_clock::time_point start_time;
+        std::chrono::steady_clock::time_point end_time;
+
+        ix::WebSocket wss;
+        //set headers otherwise the server will respond with Error 400 or Error 401
+        wss.setExtraHeaders({
+            {"Sec-WebSocket-Protocol", "net.measurementlab.ndt.v7"},
+            {"User-Agent", "ndt7-cpp-client"}
+        });
     
-    //retrieve the proper path .Required path ---> scheme/domain/access_token
-    ws.setUrl(RetrieveBaseUrl(servers.at(0).download_wss)); //retrieve the proper format of the connection url
+        wss.setUrl(RetrieveBaseUrl(server.download_wss));
 
-    ws.setOnMessageCallback([&](const ix::WebSocketMessagePtr& msg) {
-        if (msg->type == ix::WebSocketMessageType::Open) {
-            std::cout << "Connected successfully.\n";
-            ws.close();
-        }
-        else if (msg->type == ix::WebSocketMessageType::Close) {
-            std::cout << "Connection closed.\n";
-            promise.set_value();
-        }
-        else if (msg->type == ix::WebSocketMessageType::Error) {
-            std::cerr << "Error: " << msg->errorInfo.reason << "\n";
-            promise.set_value();
-        }
-    });
 
-    ws.start();
-    future.get();
+        //ping logic
+        wss.setOnMessageCallback([&](const ix::WebSocketMessagePtr& msg) {
+            if (msg->type == ix::WebSocketMessageType::Open) {
+                start_time = std::chrono::steady_clock::now();
+                wss.ping("Ping");
+            }
+            else if (msg->type == ix::WebSocketMessageType::Pong){
+                end_time = std::chrono::steady_clock::now();
+                auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+                server.ping = duration;
+                wss.close();
+            }
+            else if (msg->type == ix::WebSocketMessageType::Close) {
+                    promise.set_value();
+            }
+            else if (msg->type == ix::WebSocketMessageType::Error) {
+                std::cerr << std::endl << "Error: " << msg->errorInfo.reason << "\n";
+                wss.close();
+                promise.set_value();
+                
+            }
+        });
+
+        wss.start();
+
+        if (future.wait_for(std::chrono::seconds(5)) == std::future_status::timeout) {
+            std::cerr << "Timeout on server: " << server.machine << "\n";
+            wss.close();
+        } else {
+            future.get();
+        }
+    }
 }
+
+void sortServers(std::vector<ServerInfo>& servers) {
+    std::sort(servers.begin(), servers.end(), [](const ServerInfo& a, const ServerInfo& b) {
+        return a.ping < b.ping;
+    });
+}
+
+
+
