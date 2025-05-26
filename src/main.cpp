@@ -16,14 +16,19 @@ int main(void){
       return 1;
    }
 
-   std::cout << "____________________PING____________________" << std::endl;
+   std::cout << "____________________PING LOGS____________________" << std::endl;
    FindPing(servers);//ping servers to find the best one 
    sortServers(servers);//sort servers based on ping
 
-
-   for (auto& server : servers){
-      std::cout << server.machine << " ping : " << server.ping << std::endl;
+   std::cout << "____________________UPLOAD TEST____________________" << std::endl;
+   //iterate all the servers and find the first one with a successful connection 
+   for (auto &server : servers){
+      //if the first test succeed then break the program
+      if(uploadTest(server)){
+         break;
+      }
    }
+   
 
    return 0;
 }

@@ -16,6 +16,8 @@ constexpr const char* url_ws_download = "ws:///ndt/v7/download";
 constexpr const char* url_ws_upload = "ws:///ndt/v7/upload";
 constexpr const char* url_wss_download = "wss:///ndt/v7/download";
 constexpr const char* url_wss_upload = "wss:///ndt/v7/upload";
+constexpr const int chunk_size = 64 * 1024;//64KB
+constexpr const int max_wait_upload = 20;//20 seconds
 /**
  * @brief struct used to represent the servers information retrieved from the mlab locate v2 api
  */
@@ -92,3 +94,11 @@ std::string RetrieveBaseUrl(const std::string& url);
  */
 
 void sortServers(std::vector<ServerInfo>& servers);
+
+/**
+ * @brief tests the first available server connection
+ * and implements the upload speed test
+ * @param server the current server tested
+ * @return true if operation succeed else false
+ */
+bool uploadTest(const ServerInfo& server);

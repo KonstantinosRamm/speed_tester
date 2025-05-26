@@ -116,6 +116,7 @@ std::string RetrieveAccessToken(const std::string& url){
 
 
 void FindPing(std::vector<ServerInfo>& servers){
+    
     for (auto& server : servers)
     {
         std::promise<void> promise;
@@ -173,6 +174,91 @@ void sortServers(std::vector<ServerInfo>& servers) {
         return a.ping < b.ping;
     });
 }
+
+
+
+bool uploadTest(const ServerInfo& server){
+    if (server.ping == default_ping) return false;
+
+    double Mbps = 0;
+    //buffer of data to be send
+    std::string buffer(chunk_size, 'A');
+
+    //promise to avoid memory leaks since IXWebsocket is fully asynchronous
+    std::promise<void> promise;
+    auto future = promise.get_future();
+
+    std::atomic<bool> promiseSet{false};
+
+    //json object of last response(since only the last server response is important for us)
+    nlohmann::json lastJson;
+
+
+    ix::WebSocket wss;
+    //headers required for connection to server
+    wss.setExtraHeaders({
+        {"Sec-WebSocket-Protocol", "net.measurementlab.ndt.v7"},
+        {"User-Agent", "ndt7-cpp-client"}
+    });
+    wss.setUrl(RetrieveBaseUrl(server.upload_wss));
+
+    wss.setOnMessageCallback([&](const ix::WebSocketMessagePtr& msg) {
+        if (msg->type == ix::WebSocketMessageType::Open) {
+            wss.sendBinary(buffer);
+        }
+        else if (msg->type == ix::WebSocketMessageType::Message) {
+            try {//fields required from server response for upload testing
+                auto json_msg = nlohmann::json::parse(msg->str);
+                if (json_msg.contains("TCPInfo") && json_msg["TCPInfo"].contains("ElapsedTime") && json_msg["TCPInfo"].contains("BytesSent")) {
+                    lastJson = json_msg;
+                }
+                wss.sendBinary(buffer);
+            }
+            catch (const std::exception& e) {
+                std::cerr << "JSON error: " << e.what() << std::endl;
+            }
+        }//error and close 
+        else if ((msg->type == ix::WebSocketMessageType::Close || msg->type == ix::WebSocketMessageType::Error) && !promiseSet.exchange(true)) {
+            if (msg->type == ix::WebSocketMessageType::Error) {
+                std::cerr << "Upload Error: " << msg->errorInfo.reason << std::endl;
+                wss.close();
+            }
+            promise.set_value();
+        }
+    });
+
+    wss.start();
+    //NDT7 uses a stream between server and client for 10 seconds normally ,but we set a timeout of max_wait_upload to avoid infinite loops 
+    if (future.wait_for(std::chrono::seconds(max_wait_upload)) == std::future_status::timeout) {
+        std::cerr << "Upload test timeout on server: " << server.machine << std::endl;
+        wss.close();
+        return false;
+    }
+
+    try {
+        size_t bytesSent = lastJson["TCPInfo"]["BytesReceived"];// parse bytes received from server
+        double elapsedTime = lastJson["TCPInfo"]["ElapsedTime"]; // in microseconds
+        double seconds = elapsedTime / 1'000'000.0; // divide to get seconds we will get almost 10 everytime since it uses NDT7
+        double bits = bytesSent * 8.0; //calculate bits instead
+        Mbps = bits / seconds / 1'000'000.0;//convert to megabit/s
+
+        //TODO
+        //implement function to convert mbps to gbps and kbps
+        
+        std::cout << "Server Location: " << server.city << " - " << server.country << std::endl;
+        std::cout << "Speed : " << Mbps << " mbps" << std::endl;
+        return true;
+    } catch (...) {
+        std::cerr << "Failed to extract results from upload test." << std::endl;
+        return false;
+    }
+}
+
+
+
+
+
+
 
 
 
