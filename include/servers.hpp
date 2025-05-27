@@ -8,6 +8,7 @@
 #include <chrono>
 #include <future>
 #include <cstdlib>
+#include <iomanip>
  
 constexpr int default_ping = -1;//default value before the ping calculated for each server
 constexpr const char* MLAB_API = "https://locate.measurementlab.net/v2/nearest/ndt/ndt7"; //mlab locate v2 API to retrieve nearest servers available for testing
@@ -102,3 +103,13 @@ void sortServers(std::vector<ServerInfo>& servers);
  * @return true if operation succeed else false
  */
 bool uploadTest(const ServerInfo& server);
+
+
+/**
+ * @brief tests the first available server connection
+ * and implements the download speed test
+ * @param server the current server tested
+ * @return true if operation succeed else false
+ */
+bool downloadTest(const ServerInfo& server);
+

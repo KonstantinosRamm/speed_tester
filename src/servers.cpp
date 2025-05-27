@@ -116,45 +116,40 @@ std::string RetrieveAccessToken(const std::string& url){
 
 
 void FindPing(std::vector<ServerInfo>& servers){
-    
     for (auto& server : servers)
     {
         std::promise<void> promise;
         std::future<void> future = promise.get_future();
+        std::atomic<bool> promiseSet{false};  // <--- atomic flag to fix memory leaks due to no synchronization
 
         std::chrono::steady_clock::time_point start_time;
         std::chrono::steady_clock::time_point end_time;
-
+        //ix WebSocket setup
         ix::WebSocket wss;
-        //set headers otherwise the server will respond with Error 400 or Error 401
         wss.setExtraHeaders({
             {"Sec-WebSocket-Protocol", "net.measurementlab.ndt.v7"},
             {"User-Agent", "ndt7-cpp-client"}
         });
-    
         wss.setUrl(RetrieveBaseUrl(server.download_wss));
 
-
-        //ping logic
+        //setup basic callback function
         wss.setOnMessageCallback([&](const ix::WebSocketMessagePtr& msg) {
             if (msg->type == ix::WebSocketMessageType::Open) {
                 start_time = std::chrono::steady_clock::now();
                 wss.ping("Ping");
             }
-            else if (msg->type == ix::WebSocketMessageType::Pong){
+            else if (msg->type == ix::WebSocketMessageType::Pong) {
                 end_time = std::chrono::steady_clock::now();
                 auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
                 server.ping = duration;
                 wss.close();
-            }
-            else if (msg->type == ix::WebSocketMessageType::Close) {
-                    promise.set_value();
-            }
-            else if (msg->type == ix::WebSocketMessageType::Error) {
-                std::cerr << std::endl << "Error: " << msg->errorInfo.reason << "\n";
-                wss.close();
+            }//in case of error or close message we set the promiseSet to true to make the thread safe from undefined behavior or race conditions
+            else if ((msg->type == ix::WebSocketMessageType::Close || msg->type == ix::WebSocketMessageType::Error) && !promiseSet.exchange(true)) {
+                if (msg->type == ix::WebSocketMessageType::Error) {
+                    std::cerr << std::endl << "Error: " << msg->errorInfo.reason << "\n";
+                    wss.close();
+                }
                 promise.set_value();
-                
             }
         });
 
@@ -162,12 +157,17 @@ void FindPing(std::vector<ServerInfo>& servers){
 
         if (future.wait_for(std::chrono::seconds(5)) == std::future_status::timeout) {
             std::cerr << "Timeout on server: " << server.machine << "\n";
+            //set promiseSet to true to avoid undefined behavior or race conditions
+            if (!promiseSet.exchange(true)) {
+                promise.set_value();
+            }
             wss.close();
         } else {
             future.get();
         }
     }
 }
+
 
 void sortServers(std::vector<ServerInfo>& servers) {
     std::sort(servers.begin(), servers.end(), [](const ServerInfo& a, const ServerInfo& b) {
@@ -209,7 +209,7 @@ bool uploadTest(const ServerInfo& server){
         else if (msg->type == ix::WebSocketMessageType::Message) {
             try {//fields required from server response for upload testing
                 auto json_msg = nlohmann::json::parse(msg->str);
-                if (json_msg.contains("TCPInfo") && json_msg["TCPInfo"].contains("ElapsedTime") && json_msg["TCPInfo"].contains("BytesSent")) {
+                if (json_msg.contains("TCPInfo") && json_msg["TCPInfo"].contains("ElapsedTime") && json_msg["TCPInfo"].contains("BytesReceived")) {
                     lastJson = json_msg;
                 }
                 wss.sendBinary(buffer);
@@ -234,7 +234,7 @@ bool uploadTest(const ServerInfo& server){
         wss.close();
         return false;
     }
-
+    wss.stop();
     try {
         size_t bytesSent = lastJson["TCPInfo"]["BytesReceived"];// parse bytes received from server
         double elapsedTime = lastJson["TCPInfo"]["ElapsedTime"]; // in microseconds
@@ -246,10 +246,82 @@ bool uploadTest(const ServerInfo& server){
         //implement function to convert mbps to gbps and kbps
         
         std::cout << "Server Location: " << server.city << " - " << server.country << std::endl;
-        std::cout << "Speed : " << Mbps << " mbps" << std::endl;
+        std::cout << "Upload speed : " << Mbps << " mbps"  << " | ping " << server.ping << std::endl;
         return true;
     } catch (...) {
         std::cerr << "Failed to extract results from upload test." << std::endl;
+        return false;
+    }
+}
+
+
+
+bool downloadTest(const ServerInfo& server){
+    if (server.ping == default_ping) return false;
+
+    double Mbps = 0;
+
+    //promise to avoid memory leaks since IXWebsocket is fully asynchronous
+    std::promise<void> promise;
+    auto future = promise.get_future();
+
+    std::atomic<bool> promiseSet{false};
+
+    //json object of last response(since only the last server response is important for us)
+    nlohmann::json lastJson;
+
+    std::string last_message;
+    ix::WebSocket wss;
+    //headers required for connection to server
+    wss.setExtraHeaders({
+        {"Sec-WebSocket-Protocol", "net.measurementlab.ndt.v7"},
+        {"User-Agent", "ndt7-cpp-client"}
+    });
+    wss.setUrl(RetrieveBaseUrl(server.download_wss));
+
+    wss.setOnMessageCallback([&](const ix::WebSocketMessagePtr& msg) {
+        //based on NDT7 protocol the server will start sending messages directly after the connection opens
+        // we dont parse the whole message string into a json since 
+        // sometimes MLAB API servers contains syntactic mistakes in the json file sended through download
+        // which can lead to errors and undefined behavior
+        if (msg->type == ix::WebSocketMessageType::Message) {
+            if (msg->str.find("\"TCPInfo\"") != std::string::npos) {
+                last_message = msg->str;
+            }
+        }//error and close
+        else if ((msg->type == ix::WebSocketMessageType::Close || msg->type == ix::WebSocketMessageType::Error) && !promiseSet.exchange(true)) {
+            if (msg->type == ix::WebSocketMessageType::Error) {
+                std::cerr << "Download Error: " << msg->errorInfo.reason << std::endl;
+                wss.close();
+            }
+            promise.set_value();
+        }
+    });
+
+    wss.start();
+    //NDT7 uses a stream between server and client for 10 seconds normally ,but we set a timeout of max_wait_upload to avoid infinite loops 
+    if (future.wait_for(std::chrono::seconds(max_wait_upload)) == std::future_status::timeout) {
+        std::cerr << "Upload test timeout on server: " << server.machine << std::endl;
+        wss.close();
+        return false;
+    }
+    wss.stop();
+    try {
+        lastJson = nlohmann::json::parse(last_message);
+        size_t bytesSent = lastJson["TCPInfo"]["BytesSent"];// parse bytes received from server
+        double elapsedTime = lastJson["TCPInfo"]["ElapsedTime"]; // in microseconds
+        double seconds = elapsedTime / 1'000'000.0; // divide to get seconds we will get almost 10 everytime since it uses NDT7
+        double bits = bytesSent * 8.0; //calculate bits instead
+        Mbps = bits / seconds / 1'000'000.0;//convert to megabit/s
+
+        //TODO
+        //implement function to convert mbps to gbps and kbps
+        
+        std::cout << "Server Location: " << server.city << " - " << server.country << std::endl;
+        std::cout << "Download speed : " << Mbps << " mbps"  << " | ping " << server.ping << std::endl;
+        return true;
+    } catch (...) {
+        std::cerr << "Failed to extract results from Download test." << std::endl;
         return false;
     }
 }

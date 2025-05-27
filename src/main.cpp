@@ -7,6 +7,7 @@
 
 
 int main(void){
+   std::cout << std::fixed << std::setprecision(2) << std::endl;
    std::vector<ServerInfo> servers;//vector of all available servers found
 
    bool result = FindAvailableServers(servers);
@@ -16,19 +17,27 @@ int main(void){
       return 1;
    }
 
-   std::cout << "____________________PING LOGS____________________" << std::endl;
+   std::cout << "PING: " << std::endl;
    FindPing(servers);//ping servers to find the best one 
    sortServers(servers);//sort servers based on ping
 
-   std::cout << "____________________UPLOAD TEST____________________" << std::endl;
+   std::cout << "UPLOAD-DOWNLOAD: " << std::endl;
    //iterate all the servers and find the first one with a successful connection 
+   bool upload_succeed =   false;
+   bool download_succeed = false;
    for (auto &server : servers){
-      //if the first test succeed then break the program
-      if(uploadTest(server)){
+      //if the first upload to server succeed dont repeat the upload proccess
+      if(uploadTest(server) && !upload_succeed){
+         upload_succeed = true;
+      }
+      //if the first upload to server succeed dont repeat the upload proccess
+      if(downloadTest(server) && !download_succeed){
+         download_succeed = true;
+      }
+      //if both download and upload already succeed break the loop
+      if(download_succeed && upload_succeed){
          break;
       }
    }
-   
-
    return 0;
 }
