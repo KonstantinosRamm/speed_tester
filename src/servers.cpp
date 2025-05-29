@@ -236,17 +236,17 @@ bool uploadTest(const ServerInfo& server){
     }
     wss.stop();
     try {
+        std::string speed_unit;
         size_t bytesSent = lastJson["TCPInfo"]["BytesReceived"];// parse bytes received from server
         double elapsedTime = lastJson["TCPInfo"]["ElapsedTime"]; // in microseconds
-        double seconds = elapsedTime / 1'000'000.0; // divide to get seconds we will get almost 10 everytime since it uses NDT7
-        double bits = bytesSent * 8.0; //calculate bits instead
-        Mbps = bits / seconds / 1'000'000.0;//convert to megabit/s
-
-        //TODO
-        //implement function to convert mbps to gbps and kbps
+        double seconds = elapsedTime / 1'000'000.0; // divide to get seconds from microseconds
+        size_t bits = bytesSent * 8; //calculate bits instead
+        double bits_double = static_cast<double>(bits);
+        formatSpeed(bits_double,speed_unit);
+        double bitRate = bits_double / seconds;
         
         std::cout << "Server Location: " << server.city << " - " << server.country << std::endl;
-        std::cout << "Upload speed : " << Mbps << " mbps"  << " | ping " << server.ping << std::endl;
+        std::cout << "Upload speed : " << bitRate << " " << speed_unit  << " | ping " << server.ping << std::endl;
         return true;
     } catch (...) {
         std::cerr << "Failed to extract results from upload test." << std::endl;
@@ -258,6 +258,7 @@ bool uploadTest(const ServerInfo& server){
 
 bool downloadTest(const ServerInfo& server){
     if (server.ping == default_ping) return false;
+    std::string speed_unit;
 
     double Mbps = 0;
 
@@ -307,18 +308,18 @@ bool downloadTest(const ServerInfo& server){
     }
     wss.stop();
     try {
+        std::string speed_unit;
         lastJson = nlohmann::json::parse(last_message);
         size_t bytesSent = lastJson["TCPInfo"]["BytesSent"];// parse bytes received from server
         double elapsedTime = lastJson["TCPInfo"]["ElapsedTime"]; // in microseconds
-        double seconds = elapsedTime / 1'000'000.0; // divide to get seconds we will get almost 10 everytime since it uses NDT7
-        double bits = bytesSent * 8.0; //calculate bits instead
-        Mbps = bits / seconds / 1'000'000.0;//convert to megabit/s
-
-        //TODO
-        //implement function to convert mbps to gbps and kbps
+        double seconds = elapsedTime / 1'000'000.0; // divide to get seconds from microseconds
+        size_t bits = bytesSent * 8; //calculate bits instead
+        double bits_double = static_cast<double>(bits);
+        formatSpeed(bits_double,speed_unit);
+        double bitRate = bits_double / seconds;
         
         std::cout << "Server Location: " << server.city << " - " << server.country << std::endl;
-        std::cout << "Download speed : " << Mbps << " mbps"  << " | ping " << server.ping << std::endl;
+        std::cout << "Download speed : " << bitRate << " " << speed_unit << " | ping " << server.ping << std::endl;
         return true;
     } catch (...) {
         std::cerr << "Failed to extract results from Download test." << std::endl;

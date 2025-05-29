@@ -1,5 +1,6 @@
 #include "json.hpp"
 #include "servers.hpp"
+#include "conversions.hpp"
 #include <iostream>
 #include <string>
 #include <vector>

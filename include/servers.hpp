@@ -9,6 +9,8 @@
 #include <future>
 #include <cstdlib>
 #include <iomanip>
+#include <utility>//for std::pair
+#include "conversions.hpp"
  
 constexpr int default_ping = -1;//default value before the ping calculated for each server
 constexpr const char* MLAB_API = "https://locate.measurementlab.net/v2/nearest/ndt/ndt7"; //mlab locate v2 API to retrieve nearest servers available for testing
