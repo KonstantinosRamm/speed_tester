@@ -20,5 +20,24 @@ A simple speed testing tool written in C++. It automatically connects to one of 
 - [IXWebSocket](https://github.com/machinezone/IXWebSocket)
 
 ## Installation
+Before building the project, you need to install the required dependencies.
 
+### Install dependencies (Debian)
+```bash
+# Update packages
+sudo apt update
+# Install Core dependencies
+sudo apt install git cmake make libcurl4-openssl-dev libssl-dev zlib1g-dev build-essential
+
+#Install IXWebSocket
+git clone https://github.com/machinezone/IXWebSocket.git
+cd IXWebSocket
+mkdir build
+cd build
+cmake -DUSE_TLS=ON ..
+make -j$(nproc)
+sudo make install
+cd ../..
+rm -rf IXWebSocket
+```
 
