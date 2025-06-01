@@ -37,6 +37,8 @@ cd build
 cmake -DUSE_TLS=ON ..
 make -j$(nproc)
 sudo make install
+
+# Clean Up IXWebSocket unnecessary files
 cd ../..
 rm -rf IXWebSocket
 ```
